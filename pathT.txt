@@ -1,0 +1,7 @@
+ImageDatabase\database_path\pathAts.txt
+ImageDatabase\database_path\pathCts.txt
+ImageDatabase\database_path\pathIts.txt
+ImageDatabase\database_path\pathLts.txt
+ImageDatabase\database_path\pathMts.txt
+ImageDatabase\database_path\pathTts.txt
+ImageDatabase\database_path\pathWts.txt
