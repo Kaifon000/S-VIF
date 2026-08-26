@@ -6,14 +6,14 @@
 % 讀取7個影像資料庫的參考影像列表路徑
 %%%%%%%%%%%%%%%%%%%%%%%%%
 pathref = fopen('pathR.txt', 'r');
-Inputref = textscan(pathref, '%s', 7, 'delimiter', '\n');
+Inputref = textscan(pathref, '%s', 8, 'delimiter', '\n');
 pathR = Inputref{1};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 % 讀取7個影像資料庫的失真影像列表路徑
 %%%%%%%%%%%%%%%%%%%%%%%%%
 pathdis = fopen('pathT.txt', 'r');
-Inputdis = textscan(pathdis, '%s', 7, 'delimiter', '\n'); % 讀取標題列
+Inputdis = textscan(pathdis, '%s', 8, 'delimiter', '\n'); % 讀取標題列
 pathT = Inputdis{1};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,10 +50,16 @@ save results/MICT/output_MICT.txt MICT_value -ascii;
 % 以TID2008影像資料庫做測試
 %%%%%%%%%%%%%%%%%%%%%%%%%
 TID2008_value = assessment(pathR{6}, pathT{6}, 1700);
-save results/TID2018/output_TID2018.txt TID2008_value -ascii;
+save results/TID2008/output_TID2008.txt TID2008_value -ascii;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 % 以WIQ影像資料庫做測試
 %%%%%%%%%%%%%%%%%%%%%%%%%
 WIQ_value = assessment(pathR{7}, pathT{7}, 80);
 save results/WIQ/output_WIQ.txt WIQ_value -ascii;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% 以CCID2014影像資料庫做測試
+%%%%%%%%%%%%%%%%%%%%%%%%%
+CCID2014_value = assessment(pathR{8}, pathT{8}, 655);
+save results/CCID2014/output_CCID2014.txt CCID2014_value -ascii;
