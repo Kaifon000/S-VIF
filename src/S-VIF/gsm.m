@@ -1,51 +1,57 @@
 function [ssarr, l_arr]=gsm(org,M)
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ¨Ï¥ÎGSM¼Ò«¬±N°Ñ¦Ò¼v¹³ÀW±aÂà¬°°ª´µ¦V¶qÀH¾÷³õ
+% The reference image frequency band is converted into a Gaussian vector random field using the GSM model.
+% ä½¿ç”¨GSMæ¨¡å‹å°‡åƒè€ƒå½±åƒé »å¸¶è½‰ç‚ºé«˜æ–¯å‘é‡éš¨æ©Ÿå ´
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
-for i=1:4; % 4­Ó¤Ø«×
+for i=1:4; % 4 scales 4å€‹å°ºåº¦
     y=org{i};
     
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ±N¼v¹³ªºªø©M¼eÅÜ¬°3ªº­¿¼Æ
+% Change the length and width of the image to multiples of 3.
+% å°‡å½±åƒçš„é•·å’Œå¯¬è®Šç‚º3çš„å€æ•¸
 %%%%%%%%%%%%%%%%%%%%%%%%%    
     sizey=floor(size(y)./M)*M;
     y=y(1:sizey(1),1:sizey(2));
     
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ­pºâ¦@ÅÜ²§¼Æ¯x°}¬°Cu
+% Calculate the covariance matrix as Cu
+% è¨ˆç®—å…±è®Šç•°æ•¸çŸ©é™£ç‚ºCu
 %%%%%%%%%%%%%%%%%%%%%%%%%        
     temp=[];
     for j=1:M
         for k=1:M
-            temp=cat(1,temp,reshape(y(k:end-(M-k), j:end-(M-j)),1,[])); % ±N§½³¡3x3ªºblockÂà¬°9x1ªº¦V¶q(overlapping block)
+            temp=cat(1,temp,reshape(y(k:end-(M-k), j:end-(M-j)),1,[])); % Convert a local 3x3 block into a 9x1 vector (overlapping block) å°‡å±€éƒ¨3x3çš„blockè½‰ç‚º9x1çš„å‘é‡(overlapping block)
         end
     end
     mcu=mean(temp')';
-    cu=((temp-repmat(mcu,1,size(temp,2)))*(temp-repmat(mcu,1,size(temp,2)))')./size(temp,2);    % ¦@ÅÜ²§¼Æ¯x°}¬°Cu
+    cu=((temp-repmat(mcu,1,size(temp,2)))*(temp-repmat(mcu,1,size(temp,2)))')./size(temp,2);    % The covariance matrix is â€‹â€‹Cu å…±è®Šç•°æ•¸çŸ©é™£ç‚ºCu
     
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ­pºâS¯Â¶qÀH¾÷³õ
+% Calculate the S scalar random field
+% è¨ˆç®—Sç´”é‡éš¨æ©Ÿå ´
 %%%%%%%%%%%%%%%%%%%%%%%%%      
     temp=[];
     for j=1:M
         for k=1:M
-            temp=cat(1,temp,reshape(y(k:M:end, j:M:end),1,[])); % ±N§½³¡3x3ªºblockÂà¬°9x1ªº¦V¶q(non-overlapping block)
+            temp=cat(1,temp,reshape(y(k:M:end, j:M:end),1,[])); % Convert a local 3x3 block into a 9x1 vector (non-overlapping block). å°‡å±€éƒ¨3x3çš„blockè½‰ç‚º9x1çš„å‘é‡(non-overlapping block)
         end
     end
     ss=(inv(cu)*temp);
     ss=sum(ss.*temp)./(M*M);
-    ss=reshape(ss,sizey/M); % S¯Â¶qÀH¾÷³õªº¥­¤è
+    ss=reshape(ss,sizey/M); % S squared of a scalar random field Sç´”é‡éš¨æ©Ÿå ´çš„å¹³æ–¹
     
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ¥H¯S¼x­È£f¨ú¥N¦@ÅÜ²§¼Æ¯x°}¬°Cu¡A­°§C¹Bºâ¶q
+% Replace the covariance matrix with eigenvalue Î» as Cu to reduce computational complexity.
+% ä»¥ç‰¹å¾µå€¼Î»å–ä»£å…±è®Šç•°æ•¸çŸ©é™£ç‚ºCuï¼Œé™ä½é‹ç®—é‡
 %%%%%%%%%%%%%%%%%%%%%%%%%       
     [v,d]=eig(cu);
-    eigen = diag(d)';   % ¯S¼x­È£f
-    eigen = sort(eigen,'descend');   % ¯S¼x­È¥Ñ¤j¨ì¤p±Æ§Ç
+    eigen = diag(d)';   % eigenvalue Î» ç‰¹å¾µå€¼Î»
+    eigen = sort(eigen,'descend');   % Eigenvalues â€‹â€‹sorted from largest to smallest ç‰¹å¾µå€¼ç”±å¤§åˆ°å°æ’åº
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ¿é¥XS¯Â¶qÀH¾÷³õªº¥­¤è©M¯S¼x­È£f
+% Output the sum of squares eigenvalues â€‹â€‹Î» of the S scalar random field.
+% è¼¸å‡ºSç´”é‡éš¨æ©Ÿå ´çš„å¹³æ–¹å’Œç‰¹å¾µå€¼Î»
 %%%%%%%%%%%%%%%%%%%%%%%%%           
     ssarr{i}=ss;
     l_arr(i,:) = eigen;

@@ -1,24 +1,27 @@
 function [responseR, responseT]=log_gabor(imR, imT)
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% Log-Gabor filterÂ^¨ú¦h¤Ø«×ªº¼v¹³¯S¼x
+% Log-Gabor filters extract multi-scale image features
+% Log-Gabor filteræ“·å–å¤šå°ºåº¦çš„å½±åƒç‰¹å¾µ
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
-nscale          = 4;    % ¼v¹³ÀWÃĞ³Q¤À¸Ñªº¤Ø«×
-norient         = 2;    % ¨C­Ó¤Ø«×¦³´X­Ó¤è¦V
-minWaveLength   = 6;    % ³Ì¤p¤Ø«×Âoªi¾¹ªºªiªø
-mult            = 2;    % ¤Ø«×Âoªi¾¹ªºÁY©ñ¦]¤l
-sigmaOnf        = 0.55; % ¤Ø«×Âoªi¾¹ªºÀW¼e£mr
-dThetaOnSigma   = 1.2;  % ¨¤ÀW¼eªº«Y¼Æ
-thetaSigma = pi/(2*norient)/dThetaOnSigma;  % ¤è¦VÂoªi¾¹ªº¨¤ÀW¼e£m£c
+nscale          = 4;    % The scale at which the image spectrum is decomposed å½±åƒé »è­œè¢«åˆ†è§£çš„å°ºåº¦
+norient         = 2;    % Each scale has several directions æ¯å€‹å°ºåº¦æœ‰å¹¾å€‹æ–¹å‘
+minWaveLength   = 6;    % Wavelength of the minimum scale filter æœ€å°å°ºåº¦æ¿¾æ³¢å™¨çš„æ³¢é•·
+mult            = 2;    % Scaling factor of the scaling filter å°ºåº¦æ¿¾æ³¢å™¨çš„ç¸®æ”¾å› å­
+sigmaOnf        = 0.55; % The bandwidth Ïƒr of the scaling filter å°ºåº¦æ¿¾æ³¢å™¨çš„é »å¯¬Ïƒr
+dThetaOnSigma   = 1.2;  % Angular bandwidth coefficient è§’é »å¯¬çš„ä¿‚æ•¸
+thetaSigma = pi/(2*norient)/dThetaOnSigma;  % Angular bandwidth ÏƒÎ¸ of the directional filter æ–¹å‘æ¿¾æ³¢å™¨çš„è§’é »å¯¬ÏƒÎ¸
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ±N°Ñ¦Ò¼v¹³©M¥¢¯u¼v¹³°µ³Å¥ß¸­Âà´«
+% Perform Fourier transform on the reference image and the distorted image.
+% å°‡åƒè€ƒå½±åƒå’Œå¤±çœŸå½±åƒåšå‚…ç«‹è‘‰è½‰æ›
 %%%%%%%%%%%%%%%%%%%%%%%%%
 imagefftR = fft2(imR);
 imagefftT = fft2(imT);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ÀW°ì¤W¤Ø«×Âoªi¾¹©M¤è¦VÂoªi¾¹ªº«e¸m¤u§@
+% Pre-processing of frequency domain upscale filters and directional filters
+% é »åŸŸä¸Šå°ºåº¦æ¿¾æ³¢å™¨å’Œæ–¹å‘æ¿¾æ³¢å™¨çš„å‰ç½®å·¥ä½œ
 %%%%%%%%%%%%%%%%%%%%%%%%%
 [rows,cols] = size(imR);
 if mod(cols,2)
@@ -34,40 +37,42 @@ else
 end
 
 [x,y] = meshgrid(xrange, yrange);
-radius = sqrt(x.^2 + y.^2); % ¼Ğ¥ÜÀWÃĞ¤W¥Ñ§CÀW¨ì°ªÀW
-theta = atan2(-y,x);    % ¼Ğ¥ÜÀWÃĞ¤W¥Ñ0«×¨ì360«×
-radius = ifftshift(radius); % ±N§CÀW¥Ñ¤¤¤ß²¾¦Ü¥ª¤W¨¤
+radius = sqrt(x.^2 + y.^2); % Indicates the frequency range from low to high frequencies on the spectrum. æ¨™ç¤ºé »è­œä¸Šç”±ä½é »åˆ°é«˜é »
+theta = atan2(-y,x);    % Indicates the range of 0 degrees to 360 degrees on the spectrum. æ¨™ç¤ºé »è­œä¸Šç”±0åº¦åˆ°360åº¦
+radius = ifftshift(radius); % Move the low frequencies from the center to the upper left corner å°‡ä½é »ç”±ä¸­å¿ƒç§»è‡³å·¦ä¸Šè§’
 theta  = ifftshift(theta);
 radius(1,1) = 1;
-sintheta = sin(theta);  % ÀWÃĞ¤£¦P¨¤«×ªºsin­È
-costheta = cos(theta);  % ÀWÃĞ¤£¦P¨¤«×ªºcos­È
+sintheta = sin(theta);  % sin values â€‹â€‹at different angles of the spectrum é »è­œä¸åŒè§’åº¦çš„sinå€¼
+costheta = cos(theta);  % cos values â€‹â€‹at different angles of the spectrum é »è­œä¸åŒè§’åº¦çš„coså€¼
 clear x; clear y; clear theta;
 
-lp = lowpassfilter([rows,cols],.45,15); % ¨Ï¥Î§C³qÂoªi¾¹Âo°£¸û°ªÀWªº³¡¤À
+lp = lowpassfilter([rows,cols],.45,15); % Use a low-pass filter to filter out the higher frequency components. ä½¿ç”¨ä½é€šæ¿¾æ³¢å™¨æ¿¾é™¤è¼ƒé«˜é »çš„éƒ¨åˆ†
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ³Ğ³y4­Ó¤Ø«×Âoªi¾¹
+% Create 4 scale filters
+% å‰µé€ 4å€‹å°ºåº¦æ¿¾æ³¢å™¨
 %%%%%%%%%%%%%%%%%%%%%%%%%
 logGabor = cell(1,nscale);
 for s = 1:nscale
     wavelength = minWaveLength*mult^(s-1);
-    fo = 1.0/wavelength;    % ¤¤¤ßÀW²v£s0
-    logGabor{s} = exp((-(log(radius/fo)).^2) / (2 * log(sigmaOnf)^2));  % ¤Ø«×Âoªi¾¹ªº¤½¦¡
+    fo = 1.0/wavelength;    % Center frequency Ï‰0 ä¸­å¿ƒé »ç‡Ï‰0
+    logGabor{s} = exp((-(log(radius/fo)).^2) / (2 * log(sigmaOnf)^2));  % Formula for scaling filters å°ºåº¦æ¿¾æ³¢å™¨çš„å…¬å¼
     logGabor{s} = logGabor{s}.*lp;
     logGabor{s}(1,1) = 0; 
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ³Ğ³y2­Ó¤è¦VÂoªi¾¹
+% Create two directional filters
+% å‰µé€ 2å€‹æ–¹å‘æ¿¾æ³¢å™¨
 %%%%%%%%%%%%%%%%%%%%%%%%%
 spread = cell(1,norient);
 for o = 1:norient
   direct = 2*(o-1)+1;
-  angl = (direct-1)*pi/(2*norient); % ¤è¦V¨¤£cj (¤ô¥­©M««ª½¤è¦V)
-  ds = sintheta * cos(angl) - costheta * sin(angl); % sin(£c-£cj) ¿n¤Æ©M®t
-  dc = costheta * cos(angl) + sintheta * sin(angl); % cos(£c-£cj) ¿n¤Æ©M®t
-  dtheta = abs(atan2(ds,dc));   % arctan¨D¥X¨¤«×(£c-£cj)
-  spread{o} = exp((-dtheta.^2) / (2 * thetaSigma^2));   % ¤è¦VÂoªi¾¹ªº¤½¦¡
+  angl = (direct-1)*pi/(2*norient); % Direction angle Î¸j (horizontal and vertical directions) æ–¹å‘è§’Î¸j (æ°´å¹³å’Œå‚ç›´æ–¹å‘)
+  ds = sintheta * cos(angl) - costheta * sin(angl); % sin(Î¸-Î¸j) Product-to-sum ç©åŒ–å’Œå·®
+  dc = costheta * cos(angl) + sintheta * sin(angl); % cos(Î¸-Î¸j) Product-to-sum ç©åŒ–å’Œå·®
+  dtheta = abs(atan2(ds,dc));   % Find the angle (Î¸-Î¸j) using arctan. arctanæ±‚å‡ºè§’åº¦(Î¸-Î¸j)
+  spread{o} = exp((-dtheta.^2) / (2 * thetaSigma^2));   % Formula for directional filter æ–¹å‘æ¿¾æ³¢å™¨çš„å…¬å¼
 end
 
 responseR = cell(1,4);
@@ -76,24 +81,27 @@ responseT = cell(1,4);
 for  s = 1:nscale
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ÀW°ì¤W¦P¤@­Ó¤Ø«×ªº¤ô¥­©M««ª½¤è¦VÂoªi¾¹
+% Horizontal and vertical filters of the same scale in the frequency domain
+% é »åŸŸä¸ŠåŒä¸€å€‹å°ºåº¦çš„æ°´å¹³å’Œå‚ç›´æ–¹å‘æ¿¾æ³¢å™¨
 %%%%%%%%%%%%%%%%%%%%%%%%%    
     filter1 = logGabor{s} .* spread{1};
     filter2 = logGabor{s} .* spread{2};
     
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% °Ñ¦Ò¼v¹³©M¥¢¯u¼v¹³¦bªÅ¶¡°ìªºÅTÀ³(¦P¤@­Ó¤Ø«×)
+% The spatial domain response of the reference image and the distorted image (at the same scale).
+% åƒè€ƒå½±åƒå’Œå¤±çœŸå½±åƒåœ¨ç©ºé–“åŸŸçš„éŸ¿æ‡‰(åŒä¸€å€‹å°ºåº¦)
 %%%%%%%%%%%%%%%%%%%%%%%%%     
     tempR1 = abs(ifft2(imagefftR .* filter1));
     tempR2 = abs(ifft2(imagefftR .* filter2));
     tempT1 = abs(ifft2(imagefftT .* filter1));
     tempT2 = abs(ifft2(imagefftT .* filter2)); 
     mx = tempT2>tempT1;
-    tempT1(mx) = tempT2(mx);    % ¨ú¬Û¦P¦ì¸m¤W¸û¤jªºÅTÀ³§@¬°¸Ó¹³¯ÀÂI¦b¸Ó¤Ø«×ªºÅTÀ³(¥¢¯u¼v¹³)
-    tempR1(mx) = tempR2(mx);    % ¨ú¸ò¥¢¯u¼v¹³¸û¤jÅTÀ³¬Û¦P¤è¦VªºÅTÀ³§@¬°¸Ó¹³¯ÀÂI¦b¸Ó¤Ø«×ªºÅTÀ³(°Ñ¦Ò¼v¹³)
+    tempT1(mx) = tempT2(mx);    % The larger response at the same location is taken as the response of that pixel at that scale (distorted image). å–ç›¸åŒä½ç½®ä¸Šè¼ƒå¤§çš„éŸ¿æ‡‰ä½œç‚ºè©²åƒç´ é»åœ¨è©²å°ºåº¦çš„éŸ¿æ‡‰(å¤±çœŸå½±åƒ)
+    tempR1(mx) = tempR2(mx);    % The response in the same direction as the larger response of the distorted image is taken as the response of that pixel at that scale (reference image). å–è·Ÿå¤±çœŸå½±åƒè¼ƒå¤§éŸ¿æ‡‰ç›¸åŒæ–¹å‘çš„éŸ¿æ‡‰ä½œç‚ºè©²åƒç´ é»åœ¨è©²å°ºåº¦çš„éŸ¿æ‡‰(åƒè€ƒå½±åƒ)
     
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% ¿é¥X4­Ó¤Ø«×¥¢¯u¼v¹³³Ì¤jÀW±aÅTÀ³©M¬Û¹ïÀ³ªº°Ñ¦Ò¼v¹³ÀW±aÅTÀ³
+% Output the maximum bandwidth response of the distorted images at four scales and the corresponding bandwidth response of the reference image.
+% è¼¸å‡º4å€‹å°ºåº¦å¤±çœŸå½±åƒæœ€å¤§é »å¸¶éŸ¿æ‡‰å’Œç›¸å°æ‡‰çš„åƒè€ƒå½±åƒé »å¸¶éŸ¿æ‡‰
 %%%%%%%%%%%%%%%%%%%%%%%%%     
     responseR{s} = tempR1;
     responseT{s} = tempT1;

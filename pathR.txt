@@ -5,4 +5,3 @@ ImageDatabase\database_path\pathLrs.txt
 ImageDatabase\database_path\pathMrs.txt
 ImageDatabase\database_path\pathTrs.txt
 ImageDatabase\database_path\pathWrs.txt
-ImageDatabase\database_path\pathCCrs.txt
