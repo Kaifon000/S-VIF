@@ -73,6 +73,16 @@ The evaluation includes the following performance metrics:
 
 After execution, the evaluation metrics are stored in the MATLAB Workspace as `SRCC`, `KRCC`, `PLCC`, `RMSE`, and `metrics`.
 
+## License
+
+This software is provided for academic, educational, research, and other non-commercial purposes only.
+
+Commercial use is prohibited without prior written permission from the copyright holder(s).
+
+If you use this software in your research, please cite the associated S-VIF publication.
+
+See [LICENSE](LICENSE) for details.
+
 ## Citation
 
 If you use this code in your research, please cite:
